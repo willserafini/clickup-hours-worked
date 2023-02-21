@@ -9,10 +9,10 @@ $teamId = $_ENV['TEAM_ID'];
 $token = $_ENV['TOKEN'];
 //$myUserId = $_ENV['USER_ID'];
 
-//needs to get the monthly hours
+//get the current monthly hours
 $query = [
-    'start_date' => strtotime("2023-01-01 00:00:00") * 1000,
-    'end_date' => strtotime("2023-01-31 23:59:59") * 1000,
+    'start_date' => strtotime(date('Y-m-01 00:00:00')) * 1000,
+    'end_date' => strtotime(date('Y-m-t 23:59:59')) * 1000,
 ];
 
 $curl = curl_init();
