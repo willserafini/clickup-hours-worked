@@ -1,4 +1,4 @@
-# clickup-hours-worked
+# Clickup Hours Worked
 Get CSV files of the worked hours of your user using the Clickup Public API (https://clickup.com/api/).
 
 Steps:
