@@ -5,5 +5,5 @@ function milisecondsToHours(int $ms): float {
 }
 
 function getHoursFormatted(float $hours): string {
-    return number_format($hours, 2, ',', '');
+    return number_format($hours, 2, '.', '');
 }
