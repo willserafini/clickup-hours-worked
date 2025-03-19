@@ -2,6 +2,8 @@
 require('helper.php');
 require_once __DIR__ . '/vendor/autoload.php';
 
+error_reporting(E_ALL & ~E_WARNING & ~E_DEPRECATED);
+
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
@@ -9,10 +11,17 @@ $teamId = $_ENV['TEAM_ID'];
 $token = $_ENV['TOKEN'];
 //$myUserId = $_ENV['USER_ID'];
 
-//get the current monthly hours
+date_default_timezone_set('America/Sao_Paulo');
+
+// Adjust date calculations to use the specified timezone
+$start_date = new DateTime('first day of this month 00:00:00');
+$end_date = new DateTime('last day of this month 23:59:59');
+
+//var_dump($start_date, $end_date);
+
 $query = [
-    'start_date' => strtotime(date('Y-m-01 00:00:00')) * 1000,
-    'end_date' => strtotime(date('Y-m-t 23:59:59')) * 1000,
+    'start_date' => $start_date->getTimestamp() * 1000,
+    'end_date' => $end_date->getTimestamp() * 1000,
 ];
 
 $curl = curl_init();
@@ -42,7 +51,7 @@ exit;*/
 
 $hoursSum = [];
 foreach ($response->data as $data) {
-    $dateOfTrack = date('d/m/Y', $data->start / 1000);
+    $dateOfTrack = (new DateTime())->setTimestamp($data->start / 1000)->format('d/m/Y');
     if (!array_key_exists($dateOfTrack, $hoursSum)) {
         $hoursSum[$dateOfTrack]['duration'] = 0;
         $hoursSum[$dateOfTrack]['detailed'] = [];
@@ -52,7 +61,9 @@ foreach ($response->data as $data) {
     $hoursSum[$dateOfTrack]['detailed'][] = [
         'name' => $data->task->name,
         'hours' => getHoursFormatted(milisecondsToHours($data->duration)),
-        'task_url' => $data->task_url
+        'task_url' => $data->task_url,
+        'startDateTime' => (new DateTime())->setTimestamp($data->start / 1000)->format('Y-m-d H:i:s'),
+        'endDateTime' => (new DateTime())->setTimestamp($data->end / 1000)->format('Y-m-d H:i:s')
     ];
 }
 
@@ -70,7 +81,7 @@ if ($f === false || $fd === false) {
 
 fputcsv($f, ['Date', 'Hours']);
 
-fputcsv($fd, ['Date', 'Hours', 'Task', 'Task url']);
+fputcsv($fd, ['Date', 'Hours', 'Task', 'Task url', 'Start DateTime', 'End DateTime']);
 
 $sumHoursWorked = 0;
 foreach ($hoursSum as $date => $row) {
@@ -79,7 +90,7 @@ foreach ($hoursSum as $date => $row) {
 
     fputcsv($f, [$date, getHoursFormatted($hoursWorked)]);
     foreach ($row['detailed'] as $taskDetailed) {
-        fputcsv($fd, [$date, $taskDetailed['hours'], $taskDetailed['name'], $taskDetailed['task_url']]);
+        fputcsv($fd, [$date, $taskDetailed['hours'], $taskDetailed['name'], $taskDetailed['task_url'], $taskDetailed['startDateTime'], $taskDetailed['endDateTime']]);
     }
 }
 
